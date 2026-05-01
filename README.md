@@ -1,15 +1,42 @@
 # Karaoke Remote
 
-A local karaoke web app with a fullscreen host player and a mobile guest remote. The host creates a session, shows a QR code, and plays YouTube karaoke videos. Guests scan the QR code, search YouTube, add songs to the queue, and control playback in realtime.
+A local-first karaoke web app for house parties: one fullscreen host player on the computer, and mobile remotes for guests to scan, search, queue, and control songs in realtime.
 
-## Features
+## Showcase
 
-- YouTube search through the backend using the official YouTube Data API.
-- QR join flow for phones and tablets.
+<table>
+  <tr>
+    <th>Host player</th>
+    <th>Guest remote</th>
+  </tr>
+  <tr>
+    <td><img src="docs/showcase/host-player.png" alt="Karaoke Remote host player screen" height="360"></td>
+    <td><img src="docs/showcase/guest-remote.png" alt="Karaoke Remote guest mobile playlist screen" height="360"></td>
+  </tr>
+</table>
+
+## Why it exists
+
+Karaoke Remote turns a laptop or TV into the shared player while everyone else uses their phone as the remote. The host starts a local session, guests join from a QR code, and the queue stays synced over WebSockets.
+
+## Highlights
+
+- Fullscreen-style YouTube host player with overlay controls.
+- QR join flow for phones and tablets on the same network.
+- Mobile-first guest remote for search, queueing, playback, skip, select, and remove.
 - Realtime session sync with WebSockets.
-- Fullscreen-style host player with overlay controls.
-- Mobile-first guest remote for search, queue, play/pause, next, select, and remove.
+- Backend YouTube search proxy using the official YouTube Data API.
 - Vietnamese UI by default.
+
+## Tech stack
+
+| Area | Tools |
+| --- | --- |
+| Frontend | React, Vite, TypeScript |
+| Backend | Express, TypeScript |
+| Realtime | `ws` WebSocket server |
+| Karaoke source | YouTube IFrame Player API, YouTube Data API |
+| QR codes | `qrcode` |
 
 ## Requirements
 
@@ -17,7 +44,7 @@ A local karaoke web app with a fullscreen host player and a mobile guest remote.
 - npm
 - A YouTube Data API key
 
-## Setup
+## Quick start
 
 ```sh
 npm install
@@ -32,75 +59,59 @@ APP_PUBLIC_ORIGIN=http://localhost:5173
 YOUTUBE_API_KEY=your_youtube_api_key
 ```
 
-For phone access on the same Wi-Fi, `APP_PUBLIC_ORIGIN` must use the computer's LAN IP, not `localhost`:
-
-```env
-APP_PUBLIC_ORIGIN=http://192.168.x.x:5173
-```
-
-## Development
-
-Run frontend and backend together:
+Start the app:
 
 ```sh
 make dev
 ```
 
-Or run them separately:
+Open the host player at `http://localhost:5173`.
 
-```sh
-make dev-fe
-make dev-be
+## Phone access
+
+Phones cannot use `localhost` to reach the host computer. For guests on the same Wi-Fi, set `APP_PUBLIC_ORIGIN` to the host computer's LAN IP:
+
+```env
+APP_PUBLIC_ORIGIN=http://192.168.x.x:5173
 ```
 
-Stop local dev servers:
+The Vite dev server binds to `0.0.0.0`, so LAN devices can connect when the OS firewall allows inbound traffic.
 
-```sh
-make down
-```
+## How to use
 
-Default ports:
+1. Open `http://localhost:5173` on the host computer.
+2. The host creates a session and shows a QR button in the top-right overlay.
+3. Guests scan the QR code or open the join URL on their phones.
+4. Guests search by song or artist; the app automatically appends `karaoke` when needed.
+5. Guests add songs to the queue.
+6. The host overlay and guest playlist drawer can play, pause, skip, select, or remove songs.
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `make install` | Install dependencies with npm. |
+| `make dev` | Run frontend and backend together. |
+| `make dev-fe` | Run only the Vite frontend. |
+| `make dev-be` | Run only the Express/WebSocket backend. |
+| `make down` | Stop frontend and backend dev ports. |
+| `make build` | Typecheck and build the client and server. |
+| `make start` | Start the built production server. |
+| `make clean` | Remove build output. |
+
+Default local ports:
 
 - Frontend: `http://localhost:5173`
 - Backend/API/WebSocket: `http://localhost:3001`
 
-## Usage
-
-1. Open `http://localhost:5173` on the host computer.
-2. The host page creates a karaoke session and shows a QR button in the top-right overlay.
-3. Open the QR panel or scan the QR code from a phone.
-4. On the phone, search for a song or artist. The app automatically appends `karaoke` to the search query.
-5. Add songs to the queue.
-6. Use the host overlay or guest playlist drawer to start, pause, skip, select, or remove songs.
-
-## Build and production
-
-Create a production build:
+## Production build
 
 ```sh
 make build
-```
-
-Start the built server:
-
-```sh
 make start
 ```
 
 Production serves the Vite client from `dist/client` and the API/WebSocket server from the same Express app.
-
-## Useful commands
-
-```sh
-make install   # npm install
-make dev       # frontend + backend dev servers
-make dev-fe    # Vite frontend only
-make dev-be    # Express/WebSocket backend only
-make down      # stop frontend + backend ports
-make build     # typecheck and build client/server
-make start     # run production server
-make clean     # remove dist
-```
 
 ## Project structure
 
@@ -121,13 +132,6 @@ server/src/
   ws/              WebSocket message handling
 ```
 
-## Environment notes
-
-- `.env` is local-only and ignored by git.
-- `.env.example` documents required variables without secrets.
-- Phones cannot use `localhost` to reach the host computer; use the host computer's LAN IP in `APP_PUBLIC_ORIGIN`.
-- The Vite dev server binds to `0.0.0.0`, so LAN devices can reach it when the OS firewall allows inbound connections.
-
 ## Verification
 
 Before committing changes, run:
@@ -136,7 +140,7 @@ Before committing changes, run:
 npm run build
 ```
 
-For UI changes, also run the app and verify with a browser:
+For UI changes, also run the app and verify in a browser:
 
 - Host page creates a session and shows a connected status dot.
 - QR panel opens and the join URL matches `APP_PUBLIC_ORIGIN`.
@@ -144,3 +148,9 @@ For UI changes, also run the app and verify with a browser:
 - Search returns results and appends `karaoke`.
 - Adding songs updates both guest queue and host overlay.
 - Play/pause/next/select/remove sync across host and guest.
+
+## Environment notes
+
+- `.env` is local-only and ignored by git.
+- `.env.example` documents required variables without secrets.
+- `YOUTUBE_API_KEY` stays server-side.
