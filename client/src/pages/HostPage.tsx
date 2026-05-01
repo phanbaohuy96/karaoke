@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createSession } from '../api/session';
 import { QRCodeCard } from '../components/QRCodeCard';
+import { DEFAULT_VOLUME, VolumeControl } from '../components/VolumeControl';
 import { YouTubePlayer } from '../components/YouTubePlayer';
 import { useSessionSocket } from '../hooks/useSessionSocket';
 import type { CreateSessionResponse } from '../types/session';
@@ -45,13 +46,14 @@ export function HostPage() {
   }, []);
 
   const activeSnapshot = snapshot ?? session?.snapshot;
-  const playlistCount = activeSnapshot?.playlist.length ?? 0;
-  const queuedSongs = activeSnapshot?.playlist.slice(0, 3) ?? [];
-  const tickerSongs = queuedSongs.length > 1 ? [...queuedSongs, ...queuedSongs] : queuedSongs;
-  const nextSong = activeSnapshot?.playlist[0] ?? null;
+  const playlist = activeSnapshot?.playlist;
+  const playlistCount = playlist?.length ?? 0;
+  const queuedSongs = useMemo(() => playlist?.slice(0, 3) ?? [], [playlist]);
+  const tickerSongs = useMemo(() => (queuedSongs.length > 1 ? [...queuedSongs, ...queuedSongs] : queuedSongs), [queuedSongs]);
+  const nextSong = playlist?.[0] ?? null;
   const currentSong = activeSnapshot?.nowPlaying ?? null;
   const isPlaying = activeSnapshot?.isPlaying ?? false;
-  const volume = activeSnapshot?.volume ?? 70;
+  const volume = activeSnapshot?.volume ?? DEFAULT_VOLUME;
   const hostStatus = session ? status : 'connecting';
 
   const showOverlayTemporarily = useCallback(() => {
@@ -205,11 +207,7 @@ export function HostPage() {
           <h2>{currentSong?.title ?? 'Chưa có bài đang phát'}</h2>
         </div>
         <div className="host-controls">
-          <label className="volume-control host-volume-control">
-            <span>Âm lượng</span>
-            <input type="range" min="0" max="100" value={volume} onChange={(event) => setVolume(Number(event.currentTarget.value))} />
-            <strong>{volume}%</strong>
-          </label>
+          <VolumeControl className="host-volume-control" value={volume} onChange={setVolume} />
           <button type="button" disabled={!currentSong && !nextSong} onClick={togglePlayPause}>
             {isPlaying ? 'Dừng' : 'Phát'}
           </button>

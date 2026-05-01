@@ -93,9 +93,7 @@ export function YouTubePlayer({ videoId, onEnded, isPlaying, volume, onPlayingCh
           playsinline: 1,
         },
         events: {
-          onReady: (event) => {
-            event.target.setVolume(volume);
-
+          onReady: () => {
             if (isMounted) {
               setIsReady(true);
             }

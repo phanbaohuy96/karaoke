@@ -4,6 +4,7 @@ import { searchYouTube } from '../api/youtube';
 import { Playlist } from '../components/Playlist';
 import { SearchBar } from '../components/SearchBar';
 import { SearchResults } from '../components/SearchResults';
+import { DEFAULT_VOLUME, VolumeControl } from '../components/VolumeControl';
 import { useSessionSocket } from '../hooks/useSessionSocket';
 import type { SessionSnapshot, YouTubeSearchResult } from '../types/session';
 
@@ -94,7 +95,7 @@ export function JoinPage({ sessionId }: JoinPageProps) {
 
   const activeSnapshot = snapshot ?? initialSnapshot;
   const playlistCount = activeSnapshot?.playlist.length ?? 0;
-  const volume = activeSnapshot?.volume ?? 70;
+  const volume = activeSnapshot?.volume ?? DEFAULT_VOLUME;
   const addedVideoIds = useMemo(() => {
     const ids = new Set(activeSnapshot?.playlist.map((item) => item.videoId) ?? []);
 
@@ -154,11 +155,7 @@ export function JoinPage({ sessionId }: JoinPageProps) {
                 Phát bài kế
               </button>
             </div>
-            <label className="volume-control client-volume-control">
-              <span>Âm lượng</span>
-              <input type="range" min="0" max="100" value={volume} disabled={status !== 'connected'} onChange={(event) => setVolume(Number(event.currentTarget.value))} />
-              <strong>{volume}%</strong>
-            </label>
+            <VolumeControl className="client-volume-control" value={volume} disabled={status !== 'connected'} onChange={setVolume} />
             <Playlist playlist={activeSnapshot?.playlist ?? []} nowPlaying={activeSnapshot?.nowPlaying ?? null} canControl canRemove onRemoveSong={removeSong} onStartSong={setNowPlaying} />
           </aside>
         </div>
