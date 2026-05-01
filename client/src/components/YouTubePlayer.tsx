@@ -29,6 +29,7 @@ interface YouTubePlayerInstance {
   stopVideo: () => void;
   playVideo: () => void;
   pauseVideo: () => void;
+  setVolume: (volume: number) => void;
   destroy: () => void;
 }
 
@@ -36,6 +37,7 @@ interface YouTubePlayerProps {
   videoId?: string;
   onEnded: () => void;
   isPlaying: boolean;
+  volume: number;
   onPlayingChange: (isPlaying: boolean) => void;
 }
 
@@ -64,7 +66,7 @@ function loadYouTubeApi(): Promise<void> {
   return youtubeApiPromise;
 }
 
-export function YouTubePlayer({ videoId, onEnded, isPlaying, onPlayingChange }: YouTubePlayerProps) {
+export function YouTubePlayer({ videoId, onEnded, isPlaying, volume, onPlayingChange }: YouTubePlayerProps) {
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const currentVideoIdRef = useRef<string | undefined>(undefined);
   const loadingVideoIdRef = useRef<string | undefined>(undefined);
@@ -91,7 +93,9 @@ export function YouTubePlayer({ videoId, onEnded, isPlaying, onPlayingChange }: 
           playsinline: 1,
         },
         events: {
-          onReady: () => {
+          onReady: (event) => {
+            event.target.setVolume(volume);
+
             if (isMounted) {
               setIsReady(true);
             }
@@ -123,6 +127,16 @@ export function YouTubePlayer({ videoId, onEnded, isPlaying, onPlayingChange }: 
       playerRef.current = null;
     };
   }, [onEnded, onPlayingChange]);
+
+  useEffect(() => {
+    const player = playerRef.current;
+
+    if (!player || !isReady) {
+      return;
+    }
+
+    player.setVolume(volume);
+  }, [isReady, volume]);
 
   useEffect(() => {
     const player = playerRef.current;

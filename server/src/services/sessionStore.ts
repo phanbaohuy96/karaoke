@@ -2,6 +2,7 @@ import { customAlphabet, nanoid } from 'nanoid';
 import type { ClientRole, CreateSessionResult, KaraokeSession, PlaylistItem, SessionSnapshot, YouTubeSearchResult } from '../types/session.js';
 
 const createSessionId = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 6);
+const defaultVolume = 70;
 const sessions = new Map<string, KaraokeSession>();
 
 function toSnapshot(session: KaraokeSession): SessionSnapshot {
@@ -12,6 +13,7 @@ function toSnapshot(session: KaraokeSession): SessionSnapshot {
     playlist: session.playlist,
     nowPlaying: session.nowPlaying,
     isPlaying: session.isPlaying,
+    volume: session.volume,
     clientCount: session.clients.size,
   };
 }
@@ -38,6 +40,7 @@ export const sessionStore = {
       playlist: [],
       nowPlaying: null,
       isPlaying: false,
+      volume: defaultVolume,
       clients: new Map(),
     };
 
@@ -172,6 +175,19 @@ export const sessionStore = {
     }
 
     session.isPlaying = Boolean(session.nowPlaying) && isPlaying;
+
+    return toSnapshot(session);
+  },
+
+  setVolume(sessionId: string, volume: number): SessionSnapshot | undefined {
+    const session = this.getSession(sessionId);
+
+    if (!session) {
+      return undefined;
+    }
+
+    const nextVolume = Number.isFinite(volume) ? volume : defaultVolume;
+    session.volume = Math.max(0, Math.min(100, Math.round(nextVolume)));
 
     return toSnapshot(session);
   },

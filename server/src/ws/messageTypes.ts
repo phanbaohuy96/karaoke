@@ -25,6 +25,10 @@ export type ClientMessage =
   | {
       type: 'set_playing';
       isPlaying: boolean;
+    }
+  | {
+      type: 'set_volume';
+      volume: number;
     };
 
 export type ServerMessage =

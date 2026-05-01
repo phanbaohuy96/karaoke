@@ -146,6 +146,11 @@ export function useSessionSocket({ sessionId, role, hostToken, enabled = true }:
     [sendMessage],
   );
 
+  const setVolume = useCallback(
+    (volume: number) => sendMessage({ type: 'set_volume', volume }),
+    [sendMessage],
+  );
+
   return {
     snapshot,
     status,
@@ -155,5 +160,6 @@ export function useSessionSocket({ sessionId, role, hostToken, enabled = true }:
     setNowPlaying,
     playNext,
     setPlaying,
+    setVolume,
   };
 }

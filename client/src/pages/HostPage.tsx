@@ -3,7 +3,7 @@ import { createSession } from '../api/session';
 import { QRCodeCard } from '../components/QRCodeCard';
 import { YouTubePlayer } from '../components/YouTubePlayer';
 import { useSessionSocket } from '../hooks/useSessionSocket';
-import type { CreateSessionResponse, PlaylistItem } from '../types/session';
+import type { CreateSessionResponse } from '../types/session';
 
 export function HostPage() {
   const sessionRequestRef = useRef<Promise<CreateSessionResponse> | null>(null);
@@ -15,8 +15,7 @@ export function HostPage() {
   const [error, setError] = useState<string | null>(null);
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
-  const [latestAdded, setLatestAdded] = useState<PlaylistItem | null>(null);
-  const { snapshot, status, error: socketError, removeSong, setNowPlaying, playNext, setPlaying } = useSessionSocket({
+  const { snapshot, status, error: socketError, removeSong, setNowPlaying, playNext, setPlaying, setVolume } = useSessionSocket({
     sessionId: session?.sessionId,
     role: 'host',
     hostToken: session?.hostToken,
@@ -46,9 +45,13 @@ export function HostPage() {
   }, []);
 
   const activeSnapshot = snapshot ?? session?.snapshot;
+  const playlistCount = activeSnapshot?.playlist.length ?? 0;
+  const queuedSongs = activeSnapshot?.playlist.slice(0, 3) ?? [];
+  const tickerSongs = queuedSongs.length > 1 ? [...queuedSongs, ...queuedSongs] : queuedSongs;
   const nextSong = activeSnapshot?.playlist[0] ?? null;
   const currentSong = activeSnapshot?.nowPlaying ?? null;
   const isPlaying = activeSnapshot?.isPlaying ?? false;
+  const volume = activeSnapshot?.volume ?? 70;
   const hostStatus = session ? status : 'connecting';
 
   const showOverlayTemporarily = useCallback(() => {
@@ -94,11 +97,7 @@ export function HostPage() {
       return;
     }
 
-    setLatestAdded(addedSong);
     showOverlayTemporarily();
-    const timeout = window.setTimeout(() => setLatestAdded(null), 4500);
-
-    return () => window.clearTimeout(timeout);
   }, [activeSnapshot, showOverlayTemporarily]);
 
   const handlePlayNext = useCallback(() => {
@@ -145,7 +144,7 @@ export function HostPage() {
       </button>
 
       <div className="player-frame">
-        <YouTubePlayer videoId={currentSong?.videoId} onEnded={handlePlayerEnded} isPlaying={isPlaying} onPlayingChange={setPlaying} />
+        <YouTubePlayer videoId={currentSong?.videoId} onEnded={handlePlayerEnded} isPlaying={isPlaying} volume={volume} onPlayingChange={setPlaying} />
         {!currentSong ? (
           <div className="player-empty-state">
             <p>Karaoke Remote</p>
@@ -163,7 +162,26 @@ export function HostPage() {
             <i className={`host-status-dot host-status-dot--${hostStatus}`} aria-label={socketError ?? error ?? hostStatus} />
           </strong>
         </div>
-        {latestAdded ? <div className="song-added-toast">Đã thêm: {latestAdded.title}</div> : null}
+        <div className="playlist-banner" aria-label="Danh sách bài tiếp theo">
+          <div className="playlist-banner__header">
+            <span>Tiếp theo</span>
+            <strong>{playlistCount} bài chờ</strong>
+          </div>
+          <div className="playlist-banner__viewport">
+            {tickerSongs.length ? (
+              <div className={`playlist-banner__track ${queuedSongs.length > 1 ? 'playlist-banner__track--animated' : ''}`}>
+                {tickerSongs.map((song, index) => (
+                  <div className="playlist-banner__item" key={`${song.id}-${index}`}>
+                    <span>{(index % queuedSongs.length) + 1}</span>
+                    <strong>{song.title}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="playlist-banner__empty">Chưa có bài trong hàng chờ</div>
+            )}
+          </div>
+        </div>
         <div className={`player-top-actions ${isQrOpen ? 'player-top-actions--expanded' : ''}`}>
           {session ? <QRCodeCard joinUrl={session.joinUrl} compact onClick={() => setIsQrOpen((value) => !value)} /> : null}
           {isQrOpen && session ? (
@@ -186,12 +204,12 @@ export function HostPage() {
           <span>{isPlaying ? 'Đang phát' : 'Đang tạm dừng'}</span>
           <h2>{currentSong?.title ?? 'Chưa có bài đang phát'}</h2>
         </div>
-        <div className="next-song-panel">
-          <span>Tiếp theo</span>
-          <strong>{nextSong?.title ?? 'Chưa có bài trong hàng chờ'}</strong>
-          <p>{activeSnapshot?.playlist.length ?? 0} bài</p>
-        </div>
         <div className="host-controls">
+          <label className="volume-control host-volume-control">
+            <span>Âm lượng</span>
+            <input type="range" min="0" max="100" value={volume} onChange={(event) => setVolume(Number(event.currentTarget.value))} />
+            <strong>{volume}%</strong>
+          </label>
           <button type="button" disabled={!currentSong && !nextSong} onClick={togglePlayPause}>
             {isPlaying ? 'Dừng' : 'Phát'}
           </button>

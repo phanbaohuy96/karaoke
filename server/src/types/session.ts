@@ -27,6 +27,7 @@ export interface KaraokeSession {
   playlist: PlaylistItem[];
   nowPlaying: PlaylistItem | null;
   isPlaying: boolean;
+  volume: number;
   clients: Map<string, ClientInfo>;
 }
 
@@ -37,6 +38,7 @@ export interface SessionSnapshot {
   playlist: PlaylistItem[];
   nowPlaying: PlaylistItem | null;
   isPlaying: boolean;
+  volume: number;
   clientCount: number;
 }
 

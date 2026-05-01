@@ -160,6 +160,15 @@ function handleMessage(socket: WebSocket, message: ClientMessage): void {
     }
   }
 
+  if (message.type === 'set_volume') {
+    const snapshot = sessionStore.setVolume(state.sessionId, message.volume);
+
+    if (snapshot) {
+      broadcastSnapshot(state.sessionId, snapshot);
+      return;
+    }
+  }
+
   sendError(socket, 'Unable to apply playlist action.');
 }
 

@@ -20,6 +20,7 @@ export interface SessionSnapshot {
   playlist: PlaylistItem[];
   nowPlaying: PlaylistItem | null;
   isPlaying: boolean;
+  volume: number;
   clientCount: number;
 }
 
@@ -57,6 +58,10 @@ export type ClientSocketMessage =
   | {
       type: 'set_playing';
       isPlaying: boolean;
+    }
+  | {
+      type: 'set_volume';
+      volume: number;
     };
 
 export type ServerSocketMessage =

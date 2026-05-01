@@ -23,7 +23,7 @@ export function JoinPage({ sessionId }: JoinPageProps) {
   const [isPlaylistOpen, setIsPlaylistOpen] = useState(false);
   const [isCountAnimating, setIsCountAnimating] = useState(false);
   const addTimersRef = useRef<number[]>([]);
-  const { snapshot, status, addSong, removeSong, setNowPlaying, playNext, setPlaying } = useSessionSocket({
+  const { snapshot, status, addSong, removeSong, setNowPlaying, playNext, setPlaying, setVolume } = useSessionSocket({
     sessionId: normalizedSessionId,
     role: 'guest',
     enabled: Boolean(normalizedSessionId),
@@ -94,6 +94,7 @@ export function JoinPage({ sessionId }: JoinPageProps) {
 
   const activeSnapshot = snapshot ?? initialSnapshot;
   const playlistCount = activeSnapshot?.playlist.length ?? 0;
+  const volume = activeSnapshot?.volume ?? 70;
   const addedVideoIds = useMemo(() => {
     const ids = new Set(activeSnapshot?.playlist.map((item) => item.videoId) ?? []);
 
@@ -153,6 +154,11 @@ export function JoinPage({ sessionId }: JoinPageProps) {
                 Phát bài kế
               </button>
             </div>
+            <label className="volume-control client-volume-control">
+              <span>Âm lượng</span>
+              <input type="range" min="0" max="100" value={volume} disabled={status !== 'connected'} onChange={(event) => setVolume(Number(event.currentTarget.value))} />
+              <strong>{volume}%</strong>
+            </label>
             <Playlist playlist={activeSnapshot?.playlist ?? []} nowPlaying={activeSnapshot?.nowPlaying ?? null} canControl canRemove onRemoveSong={removeSong} onStartSong={setNowPlaying} />
           </aside>
         </div>
