@@ -69,12 +69,20 @@ README.md          setup and usage docs
 
 ## Operating Principles
 
+These generic agent rules come before implementation details. For the full checklist, use `.agents/skills/behavioral-guardrails/SKILL.md`.
+
+1. **Think before coding**: do not silently choose an interpretation when the request is ambiguous. State assumptions, surface tradeoffs, and ask before changing identifiers, signing, CI/CD, generated workflows, backend API contracts, or broad formatting.
+2. **Simplicity first**: write the minimum code that solves the current request. Reuse existing repo patterns, widgets, helpers, and skills before adding new abstractions.
+3. **Surgical changes**: every changed line should trace to the request or required generated output. Do not refactor adjacent code, reformat unrelated files, or delete unrelated dead code unless asked.
+4. **Goal-driven execution**: for multi-step work, define success criteria before coding, then verify with concrete checks such as `rg`, generation commands, analyzer, tests, backend tests, or UI smoke tests.
+
+## Product Rules
+
 1. **Keep the host player primary**: the host screen should remain a fullscreen-style YouTube player with translucent overlays, not a dashboard layout.
 2. **Keep guest mobile-first**: the guest page should focus on fast search, add, playlist count, and fullscreen playlist controls.
 3. **Vietnamese first**: user-facing labels, empty states, alerts, and buttons should remain Vietnamese unless the user asks otherwise.
 4. **Realtime state is authoritative**: host and guest should use WebSocket snapshots for shared playlist/playback state.
-5. **Small targeted changes**: avoid broad refactors, speculative abstractions, or unrelated formatting.
-6. **Protect secrets**: never commit `.env`, API keys, credentials, tokens, or generated secrets.
+5. **Protect secrets**: never commit `.env`, API keys, credentials, tokens, or generated secrets.
 
 ## Command Priority
 
