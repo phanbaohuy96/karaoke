@@ -39,13 +39,20 @@ export function useSessionSocket({ sessionId, role, hostToken, enabled = true }:
     const activeSessionId = sessionId;
     let reconnectTimer: number | undefined;
     let shouldReconnect = true;
+    let activeSocket: WebSocket | null = null;
 
     function connect() {
       setStatus('connecting');
       const socket = new WebSocket(createSocketUrl());
+      activeSocket = socket;
       socketRef.current = socket;
 
       socket.addEventListener('open', () => {
+        if (!shouldReconnect) {
+          socket.close();
+          return;
+        }
+
         setStatus('connected');
         setError(null);
         socket.send(
@@ -59,6 +66,10 @@ export function useSessionSocket({ sessionId, role, hostToken, enabled = true }:
       });
 
       socket.addEventListener('message', (event) => {
+        if (!shouldReconnect) {
+          return;
+        }
+
         const message = JSON.parse(event.data) as ServerSocketMessage;
 
         if (message.type === 'session_snapshot') {
@@ -72,14 +83,19 @@ export function useSessionSocket({ sessionId, role, hostToken, enabled = true }:
       });
 
       socket.addEventListener('close', () => {
-        setStatus('disconnected');
-
-        if (shouldReconnect) {
-          reconnectTimer = window.setTimeout(connect, 1500);
+        if (!shouldReconnect) {
+          return;
         }
+
+        setStatus('disconnected');
+        reconnectTimer = window.setTimeout(connect, 1500);
       });
 
       socket.addEventListener('error', () => {
+        if (!shouldReconnect) {
+          return;
+        }
+
         setStatus('error');
         setError('Không thể kết nối phiên karaoke.');
       });
@@ -90,8 +106,18 @@ export function useSessionSocket({ sessionId, role, hostToken, enabled = true }:
     return () => {
       shouldReconnect = false;
       window.clearTimeout(reconnectTimer);
-      socketRef.current?.close();
-      socketRef.current = null;
+
+      const socket = activeSocket;
+
+      if (socket?.readyState === WebSocket.CONNECTING) {
+        socket.addEventListener('open', () => socket.close(), { once: true });
+      } else if (socket?.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
     };
   }, [enabled, hostToken, role, sessionId]);
 

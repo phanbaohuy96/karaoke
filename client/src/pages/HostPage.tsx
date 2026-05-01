@@ -9,6 +9,8 @@ export function HostPage() {
   const sessionRequestRef = useRef<Promise<CreateSessionResponse> | null>(null);
   const previousPlaylistIdsRef = useRef<Set<string>>(new Set());
   const overlayTimerRef = useRef<number | undefined>(undefined);
+  const lastOverlayRevealRef = useRef(0);
+  const isOverlayVisibleRef = useRef(true);
   const [session, setSession] = useState<CreateSessionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isQrOpen, setIsQrOpen] = useState(false);
@@ -50,13 +52,28 @@ export function HostPage() {
   const hostStatus = session ? status : 'connecting';
 
   const showOverlayTemporarily = useCallback(() => {
+    const now = window.performance.now();
+
+    if (isOverlayVisibleRef.current && now - lastOverlayRevealRef.current < 250) {
+      return;
+    }
+
+    lastOverlayRevealRef.current = now;
     window.clearTimeout(overlayTimerRef.current);
+    isOverlayVisibleRef.current = true;
     setIsOverlayVisible(true);
 
     if (currentSong && !isQrOpen) {
-      overlayTimerRef.current = window.setTimeout(() => setIsOverlayVisible(false), 2600);
+      overlayTimerRef.current = window.setTimeout(() => {
+        isOverlayVisibleRef.current = false;
+        setIsOverlayVisible(false);
+      }, 2600);
     }
   }, [currentSong, isQrOpen]);
+
+  useEffect(() => {
+    isOverlayVisibleRef.current = isOverlayVisible;
+  }, [isOverlayVisible]);
 
   useEffect(() => {
     showOverlayTemporarily();
@@ -113,6 +130,8 @@ export function HostPage() {
   function handlePlayerClick() {
     if (isQrOpen) {
       setIsQrOpen(false);
+      isOverlayVisibleRef.current = true;
+      setIsOverlayVisible(true);
       return;
     }
 

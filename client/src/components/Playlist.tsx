@@ -3,14 +3,13 @@ import type { PlaylistItem } from '../types/session';
 interface PlaylistProps {
   playlist: PlaylistItem[];
   nowPlaying: PlaylistItem | null;
-  isHost?: boolean;
   canControl?: boolean;
   canRemove?: boolean;
   onRemoveSong?: (itemId: string) => void;
   onStartSong?: (itemId: string) => void;
 }
 
-export function Playlist({ playlist, nowPlaying, isHost = false, canControl = isHost, canRemove = isHost, onRemoveSong, onStartSong }: PlaylistProps) {
+export function Playlist({ playlist, nowPlaying, canControl = false, canRemove = false, onRemoveSong, onStartSong }: PlaylistProps) {
   return (
     <section className="card playlist-card">
       <div className="section-heading">
@@ -42,7 +41,7 @@ export function Playlist({ playlist, nowPlaying, isHost = false, canControl = is
                 <img src={item.thumbnailUrl} alt="" />
                 <div>
                   <h3>{item.title}</h3>
-                  <p>{item.channelTitle} · Thêm bởi {item.requestedBy === 'Guest' ? 'Khách' : 'Chủ phòng'}</p>
+                  <p>{item.channelTitle} · Thêm bởi {item.requestedBy === 'guest' ? 'Khách' : 'Chủ phòng'}</p>
                 </div>
               </div>
               {canControl ? (

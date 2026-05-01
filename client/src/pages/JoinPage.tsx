@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getSession } from '../api/session';
 import { searchYouTube } from '../api/youtube';
 import { Playlist } from '../components/Playlist';
@@ -22,10 +22,11 @@ export function JoinPage({ sessionId }: JoinPageProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPlaylistOpen, setIsPlaylistOpen] = useState(false);
   const [isCountAnimating, setIsCountAnimating] = useState(false);
+  const addTimersRef = useRef<number[]>([]);
   const { snapshot, status, addSong, removeSong, setNowPlaying, playNext, setPlaying } = useSessionSocket({
     sessionId: normalizedSessionId,
     role: 'guest',
-    enabled: Boolean(initialSnapshot),
+    enabled: Boolean(normalizedSessionId),
   });
 
   useEffect(() => {
@@ -47,6 +48,13 @@ export function JoinPage({ sessionId }: JoinPageProps) {
       isMounted = false;
     };
   }, [normalizedSessionId]);
+
+  useEffect(() => {
+    return () => {
+      addTimersRef.current.forEach(window.clearTimeout);
+      addTimersRef.current = [];
+    };
+  }, []);
 
   async function handleSearch() {
     const trimmedQuery = query.trim();
@@ -71,14 +79,17 @@ export function JoinPage({ sessionId }: JoinPageProps) {
   }
 
   async function handleAddSong(song: YouTubeSearchResult) {
+    addTimersRef.current.forEach(window.clearTimeout);
     setIsAdding(true);
     setError(null);
     setSuccessMessage(`Đã thêm “${song.title}”.`);
     setIsCountAnimating(true);
     addSong(song);
-    window.setTimeout(() => setIsAdding(false), 350);
-    window.setTimeout(() => setIsCountAnimating(false), 650);
-    window.setTimeout(() => setSuccessMessage(null), 2600);
+    addTimersRef.current = [
+      window.setTimeout(() => setIsAdding(false), 350),
+      window.setTimeout(() => setIsCountAnimating(false), 650),
+      window.setTimeout(() => setSuccessMessage(null), 2600),
+    ];
   }
 
   const activeSnapshot = snapshot ?? initialSnapshot;

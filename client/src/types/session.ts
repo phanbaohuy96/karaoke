@@ -9,8 +9,7 @@ export interface YouTubeSearchResult {
 
 export interface PlaylistItem extends YouTubeSearchResult {
   id: string;
-  youtubeVideoId: string;
-  requestedBy: string;
+  requestedBy: ClientRole;
   addedAt: number;
 }
 

@@ -1,6 +1,26 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 
+const qrCodeCache = new Map<string, Promise<string>>();
+
+function getQrDataUrl(joinUrl: string): Promise<string> {
+  let qrDataUrl = qrCodeCache.get(joinUrl);
+
+  if (!qrDataUrl) {
+    qrDataUrl = QRCode.toDataURL(joinUrl, {
+      width: 280,
+      margin: 2,
+      color: {
+        dark: '#111827',
+        light: '#ffffff',
+      },
+    });
+    qrCodeCache.set(joinUrl, qrDataUrl);
+  }
+
+  return qrDataUrl;
+}
+
 interface QRCodeCardProps {
   joinUrl: string;
   compact?: boolean;
@@ -12,14 +32,17 @@ export function QRCodeCard({ joinUrl, compact = false, onClick, className }: QRC
   const [qrDataUrl, setQrDataUrl] = useState('');
 
   useEffect(() => {
-    QRCode.toDataURL(joinUrl, {
-      width: compact ? 180 : 280,
-      margin: 2,
-      color: {
-        dark: '#111827',
-        light: '#ffffff',
-      },
-    }).then(setQrDataUrl);
+    let isCurrent = true;
+
+    getQrDataUrl(joinUrl).then((dataUrl) => {
+      if (isCurrent) {
+        setQrDataUrl(dataUrl);
+      }
+    });
+
+    return () => {
+      isCurrent = false;
+    };
   }, [compact, joinUrl]);
 
   if (compact) {

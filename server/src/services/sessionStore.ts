@@ -92,7 +92,7 @@ export const sessionStore = {
     return toSnapshot(session);
   },
 
-  addSong(sessionId: string, song: YouTubeSearchResult, requestedBy: string): SessionSnapshot | undefined {
+  addSong(sessionId: string, song: YouTubeSearchResult, requestedBy: ClientRole): SessionSnapshot | undefined {
     const session = this.getSession(sessionId);
 
     if (!session) {
@@ -101,7 +101,6 @@ export const sessionStore = {
 
     const playlistItem: PlaylistItem = {
       id: nanoid(10),
-      youtubeVideoId: song.videoId,
       videoId: song.videoId,
       title: song.title,
       channelTitle: song.channelTitle,
@@ -122,7 +121,11 @@ export const sessionStore = {
       return undefined;
     }
 
-    session.playlist = session.playlist.filter((item) => item.id !== itemId);
+    const itemIndex = session.playlist.findIndex((item) => item.id === itemId);
+
+    if (itemIndex >= 0) {
+      session.playlist.splice(itemIndex, 1);
+    }
 
     return toSnapshot(session);
   },
@@ -134,15 +137,15 @@ export const sessionStore = {
       return undefined;
     }
 
-    const item = session.playlist.find((playlistItem) => playlistItem.id === itemId);
+    const itemIndex = session.playlist.findIndex((playlistItem) => playlistItem.id === itemId);
 
-    if (!item) {
+    if (itemIndex < 0) {
       return toSnapshot(session);
     }
 
+    const [item] = session.playlist.splice(itemIndex, 1);
     session.nowPlaying = item;
     session.isPlaying = true;
-    session.playlist = session.playlist.filter((playlistItem) => playlistItem.id !== itemId);
 
     return toSnapshot(session);
   },
@@ -154,7 +157,8 @@ export const sessionStore = {
       return undefined;
     }
 
-    session.nowPlaying = session.playlist.shift() ?? null;
+    const [nextSong] = session.playlist.splice(0, 1);
+    session.nowPlaying = nextSong ?? null;
     session.isPlaying = Boolean(session.nowPlaying);
 
     return toSnapshot(session);

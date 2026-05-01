@@ -116,7 +116,7 @@ function handleMessage(socket: WebSocket, message: ClientMessage): void {
   }
 
   if (message.type === 'add_song') {
-    const snapshot = sessionStore.addSong(state.sessionId, message.song, state.role === 'host' ? 'Host' : 'Guest');
+    const snapshot = sessionStore.addSong(state.sessionId, message.song, state.role ?? 'guest');
 
     if (snapshot) {
       broadcastSnapshot(state.sessionId, snapshot);
