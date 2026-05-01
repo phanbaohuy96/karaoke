@@ -1,17 +1,34 @@
 # Karaoke Remote
 
+English | [Tiếng Việt](README.vi.md)
+
 A local-first karaoke web app for house parties: one fullscreen host player on the computer, and mobile remotes for guests to scan, search, queue, and control songs in realtime.
 
 ## Showcase
 
+### Host
+
 <table>
   <tr>
-    <th>Host player</th>
-    <th>Guest remote</th>
+    <th>Fullscreen player</th>
   </tr>
   <tr>
     <td><img src="docs/showcase/host-player.png" alt="Karaoke Remote host player screen" height="360"></td>
+  </tr>
+</table>
+
+### Guest
+
+<table>
+  <tr>
+    <th>Playlist controls</th>
+    <th>Search screen</th>
+    <th>Tablet responsive</th>
+  </tr>
+  <tr>
     <td><img src="docs/showcase/guest-remote.png" alt="Karaoke Remote guest mobile playlist screen" height="360"></td>
+    <td><img src="docs/showcase/guest-search.png" alt="Karaoke Remote guest mobile search screen" height="360"></td>
+    <td><img src="docs/showcase/guest-tablet.png" alt="Karaoke Remote tablet responsive playlist screen" height="360"></td>
   </tr>
 </table>
 
